@@ -596,20 +596,7 @@ export class OverlaySelection {
       // Если включено выделение всей строки, не рендерим выделение ячеек
       if (!this.selectWholeRow) {
         // Clipboard
-        if ((range || focus) && this.useClipboard) {
-          nodes.push(
-            <revogr-clipboard
-              readonly={this.readonly}
-              onCopyregion={e => this.onCopy(e.detail)}
-              onClearregion={() => !this.readonly && this.clearCell()}
-              ref={e => (this.clipboard = e)}
-              onPasteregion={e => this.onPaste(e.detail)}
-            />,
-          );
-        }
-      }
-      else {
-        if ((range || focus) && this.useClipboard) {
+        if ((range || focus) && this.useClipboard && this.isFocused) {
           nodes.push(
             <revogr-clipboard
               readonly={this.readonly}
