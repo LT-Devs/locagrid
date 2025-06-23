@@ -275,10 +275,24 @@ export class FilterPanel {
   }
 
   private onUserInput(index: number, prop: ColumnProp, event: Event) {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    
+    // Проверяем, является ли это вводом даты
+    const isDateInput = target.type === 'date';
+    
     // update the value of the filter item
-    this.filterItems[prop][index].value = (
-      event.target as HTMLInputElement
-    ).value;
+    if (isDateInput) {
+      // Для даты сохраняем в формате ISO
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        this.filterItems[prop][index].value = date.toISOString().split('T')[0];
+      } else {
+        this.filterItems[prop][index].value = value;
+      }
+    } else {
+      this.filterItems[prop][index].value = value;
+    }
 
     if (!this.disableDynamicFiltering) {
       this.debouncedApplyFilter();
@@ -421,24 +435,60 @@ export class FilterPanel {
 
     if (!currentFilter) return '';
 
-    if (this.filterEntities[currentFilter[index].type].extra !== 'input')
-      return '';
+    const extraType = this.filterEntities[currentFilter[index].type].extra;
+    
+    // Если нет специального типа ввода, не показываем поле ввода
+    if (!extraType) return '';
 
     const capts = Object.assign(
       this.filterCaptionsInternal,
       this.filterCaptions,
     );
 
-    return (
-      <input
-        id={`filter-input-${currentFilter[index].id}`}
-        placeholder={capts.placeholder}
-        type="text"
-        value={currentFilter[index].value}
-        onInput={this.onUserInput.bind(this, index, prop)}
-        onKeyDown={e => this.onKeyDown(e)}
-      />
-    );
+    // Для датапикера используем input с типом date
+    if (extraType === 'datepicker') {
+      // Преобразуем значение в формат YYYY-MM-DD для input type=date
+      let dateValue = '';
+      if (currentFilter[index].value) {
+        try {
+          const date = new Date(currentFilter[index].value);
+          if (!isNaN(date.getTime())) {
+            dateValue = date.toISOString().split('T')[0];
+          } else {
+            dateValue = currentFilter[index].value;
+          }
+        } catch (e) {
+          dateValue = currentFilter[index].value;
+        }
+      }
+      
+      return (
+        <input
+          id={`filter-input-${currentFilter[index].id}`}
+          placeholder={capts.placeholder}
+          type="date"
+          value={dateValue}
+          onInput={this.onUserInput.bind(this, index, prop)}
+          onKeyDown={e => this.onKeyDown(e)}
+        />
+      );
+    }
+
+    // Для обычных текстовых полей
+    if (extraType === 'input') {
+      return (
+        <input
+          id={`filter-input-${currentFilter[index].id}`}
+          placeholder={capts.placeholder}
+          type="text"
+          value={currentFilter[index].value}
+          onInput={this.onUserInput.bind(this, index, prop)}
+          onKeyDown={e => this.onKeyDown(e)}
+        />
+      );
+    }
+
+    return '';
   }
 
   render() {

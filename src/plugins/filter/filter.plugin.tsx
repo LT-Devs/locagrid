@@ -251,13 +251,19 @@ export class FilterPlugin extends BasePlugin {
     const buttonPos = el.getBoundingClientRect();
     const prop = e.detail.prop;
 
+    // Проверяем тип колонки
+    const columnType = e.detail.columnType;
+    
+    // Используем тип date для колонок с columnType='date'
+    const filterType = columnType === 'date' ? 'date' : e.detail.filter;
+
     const data: ShowData = {
       ...e.detail,
       ...this.filterCollection[prop],
       x: buttonPos.x - gridPos.x,
       y: buttonPos.y - gridPos.y + buttonPos.height,
       autoCorrect: true,
-      filterTypes: this.getColumnFilter(e.detail.filter),
+      filterTypes: this.getColumnFilter(filterType),
       filterItems: this.multiFilterItems,
       extraContent: this.extraHyperContent,
     };
@@ -268,17 +274,13 @@ export class FilterPlugin extends BasePlugin {
   getColumnFilter(
     type?: boolean | string | string[],
   ): Record<string, string[]> {
-    let filterType = 'string';
-    if (!type) {
-      return { [filterType]: this.filterByType[filterType] };
+    // Если тип явно указан как 'date', используем фильтры для дат
+    if (typeof type === 'string' && type === 'date') {
+      return { date: this.filterByType.date };
     }
-
-    // if custom column filter
-    if (this.isValidType(type)) {
-      filterType = type;
-
-      // if multiple filters applied
-    } else if (typeof type === 'object' && type.length) {
+    
+    // Если тип - массив (множественные фильтры)
+    if (typeof type === 'object' && type.length) {
       return type.reduce((r: Record<string, string[]>, multiType) => {
         if (this.isValidType(multiType)) {
           r[multiType] = this.filterByType[multiType];
@@ -286,6 +288,13 @@ export class FilterPlugin extends BasePlugin {
         return r;
       }, {});
     }
+    
+    // Если тип - строка и это валидный тип
+    let filterType = 'string';
+    if (typeof type === 'string' && this.isValidType(type)) {
+      filterType = type;
+    }
+    
     return { [filterType]: this.filterByType[filterType] };
   }
 
@@ -474,6 +483,7 @@ export class FilterPlugin extends BasePlugin {
       // THE MAGIC OF FILTERING IS HERE
       // If there is no column but user wants to filter by a property
       const value = column ? getCellDataParsed(model, column) : model[prop];
+      
       // OR relation
       if (filterData.relation === 'or') {
         // reset the array of last filter results

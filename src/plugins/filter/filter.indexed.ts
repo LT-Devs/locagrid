@@ -8,8 +8,9 @@ import lsEq from './conditions/number/lessThanOrEqual';
 import set, { notSet } from './conditions/set';
 import beginsWith from './conditions/string/beginswith';
 import contains, { notContains } from './conditions/string/contains';
+import before from './conditions/date/before';
+import after from './conditions/date/after';
 import { LogicFunction } from './filter.types';
-
 
 export const filterCoreFunctionsIndexedByType: Record<FilterType, LogicFunction> = {
   none: () => true,
@@ -27,20 +28,26 @@ export const filterCoreFunctionsIndexedByType: Record<FilterType, LogicFunction>
   gte: gtThanEq,
   lt: lt,
   lte: lsEq,
+
+  // Добавляем фильтры для дат
+  beforeDate: before,
+  afterDate: after,
 };
 
 export const filterTypes: Record<string, FilterType[]> = {
   string: ['notEmpty', 'empty', 'contains', 'notContains', 'begins'],
   number: ['notEmpty', 'empty', 'eqN', 'neqN', 'gt', 'gte', 'lt', 'lte'],
+  // Добавляем тип date с соответствующими фильтрами
+  date: ['notEmpty', 'empty', 'beforeDate', 'afterDate'],
 };
 
 export const filterNames = {
   none: 'Нет',
   empty: 'Пусто',
   notEmpty: 'Не пусто',
-/* 
-  eq: 'Равно',
-  notEq: 'Не равно', */
+  /* 
+    eq: 'Равно',
+    notEq: 'Не равно', */
   begins: 'Начинается с',
   contains: 'Содержит',
   notContains: 'Не содержит',
@@ -51,6 +58,10 @@ export const filterNames = {
   gte: '>=',
   lt: '<',
   lte: '<=',
+
+  // Добавляем названия фильтров для дат
+  beforeDate: 'До даты',
+  afterDate: 'После даты',
 };
 
 export type FilterType = keyof typeof filterNames;

@@ -33,10 +33,10 @@ export type LogicFunctionExtraParam =
   | string
   | string[]
   | number[];
-export type LogicFunction<T1 = LogicFunctionParam, T2 = LogicFunctionExtraParam> = {
+export interface LogicFunction<T1 = LogicFunctionParam, T2 = LogicFunctionExtraParam> {
   (value: T1, extra?: T2): boolean;
   extra?: ExtraField;
-};
+}
 
 export type CustomFilter<T1 = LogicFunctionParam, T2 = LogicFunctionExtraParam> = {
   /**
